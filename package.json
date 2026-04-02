@@ -1,6 +1,6 @@
 {
   "name": "geopreview",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Terminal preview for geospatial files (GeoJSON, FlatGeobuf, GeoParquet)",
   "main": "dist/cli.js",
   "bin": {
