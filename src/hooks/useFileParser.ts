@@ -1,14 +1,16 @@
 import { useEffect, useState } from "react";
-import { parseGeojson } from "../lib/parseGeojson.js";
-import type { ParseResult } from "../lib/types.js";
+import type { FileParser, ParseResult } from "../lib/types.js";
 
-interface UseGeojsonResult {
+interface UseFileParserResult {
   result: ParseResult | null;
   loading: boolean;
   error: Error | null;
 }
 
-export function useGeojson(filePath: string): UseGeojsonResult {
+export function useFileParser(
+  filePath: string,
+  parser: FileParser,
+): UseFileParserResult {
   const [result, setResult] = useState<ParseResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -16,7 +18,8 @@ export function useGeojson(filePath: string): UseGeojsonResult {
   useEffect(() => {
     let cancelled = false;
 
-    parseGeojson(filePath)
+    parser
+      .parse(filePath)
       .then((r) => {
         if (!cancelled) {
           setResult(r);
@@ -33,7 +36,7 @@ export function useGeojson(filePath: string): UseGeojsonResult {
     return () => {
       cancelled = true;
     };
-  }, [filePath]);
+  }, [filePath, parser]);
 
   return { result, loading, error };
 }

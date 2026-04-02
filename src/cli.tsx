@@ -3,11 +3,12 @@ import meow from "meow";
 import { render } from "ink";
 import React from "react";
 import App from "./App.js";
+import { getParser } from "./lib/registry.js";
 
 const cli = meow(
   `
   Usage
-    $ geojson-inspect <file>
+    $ gi <file>
 
   Options
     --no-map          Hide map preview
@@ -16,8 +17,8 @@ const cli = meow(
     --props, -p       Property display limit  Default: 15
 
   Examples
-    $ geojson-inspect world.geojson
-    $ geojson-inspect ports.geojson --no-map --props 30
+    $ gi world.geojson
+    $ gi ports.geojson --no-map --props 30
 `,
   {
     importMeta: import.meta,
@@ -52,6 +53,14 @@ if (!filePath) {
   process.exit(1);
 }
 
+let parser;
+try {
+  parser = getParser(filePath);
+} catch (e) {
+  console.error((e as Error).message);
+  process.exit(1);
+}
+
 const options = {
   noMap: !cli.flags.map,
   width: cli.flags.width,
@@ -59,6 +68,6 @@ const options = {
   props: cli.flags.props,
 };
 
-render(<App filePath={filePath} options={options} />, {
+render(<App filePath={filePath} parser={parser} options={options} />, {
   exitOnCtrlC: true,
 });

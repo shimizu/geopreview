@@ -6,16 +6,17 @@ import GeometrySummary from "./components/GeometrySummary.js";
 import PropertySchema from "./components/PropertySchema.js";
 import MapPreview from "./components/MapPreview.js";
 import Footer from "./components/Footer.js";
-import { useGeojson } from "./hooks/useGeojson.js";
-import type { CliOptions } from "./lib/types.js";
+import { useFileParser } from "./hooks/useFileParser.js";
+import type { CliOptions, FileParser } from "./lib/types.js";
 
 interface Props {
   filePath: string;
+  parser: FileParser;
   options: CliOptions;
 }
 
-const App: FC<Props> = ({ filePath, options }) => {
-  const { result, loading, error } = useGeojson(filePath);
+const App: FC<Props> = ({ filePath, parser, options }) => {
+  const { result, loading, error } = useFileParser(filePath, parser);
   const { exit } = useApp();
 
   useInput(

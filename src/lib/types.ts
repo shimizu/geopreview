@@ -34,6 +34,12 @@ export interface ParseResult {
   features: Feature[];
 }
 
+export interface FileParser {
+  /** このパーサーが対応する拡張子（例: [".geojson", ".json"]） */
+  extensions: string[];
+  parse(filePath: string): Promise<ParseResult>;
+}
+
 export interface CliOptions {
   noMap: boolean;
   width: number;

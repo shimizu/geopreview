@@ -1,6 +1,6 @@
 import { readFile, stat } from "node:fs/promises";
 import type { Feature, FeatureCollection, GeoJSON, Geometry, Position } from "geojson";
-import type { GeometryType, ParseResult, PropertyStat, PropertyType } from "./types.js";
+import type { FileParser, GeometryType, ParseResult, PropertyStat, PropertyType } from "../lib/types.js";
 
 const GEOMETRY_TYPES: GeometryType[] = [
   "Point",
@@ -103,7 +103,6 @@ function toFeatures(geojson: GeoJSON): Feature[] {
     case "Feature":
       return [geojson as Feature];
     default:
-      // Bare geometry
       return [{ type: "Feature", geometry: geojson as Geometry, properties: {} }];
   }
 }
@@ -118,56 +117,58 @@ function sampleFeatures(features: Feature[]): Feature[] {
   return sampled;
 }
 
-export async function parseGeojson(filePath: string): Promise<ParseResult> {
-  const [content, fileInfo] = await Promise.all([
-    readFile(filePath, "utf-8"),
-    stat(filePath),
-  ]);
+export const geojsonParser: FileParser = {
+  extensions: [".geojson", ".json"],
 
-  const geojson: GeoJSON = JSON.parse(content);
-  const allFeatures = toFeatures(geojson);
+  async parse(filePath: string): Promise<ParseResult> {
+    const [content, fileInfo] = await Promise.all([
+      readFile(filePath, "utf-8"),
+      stat(filePath),
+    ]);
 
-  const geometryCounts = Object.fromEntries(
-    GEOMETRY_TYPES.map((t) => [t, 0]),
-  ) as Record<GeometryType, number>;
+    const geojson: GeoJSON = JSON.parse(content);
+    const allFeatures = toFeatures(geojson);
 
-  const bbox: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
-  const statsMap = new Map<string, PropertyStat>();
+    const geometryCounts = Object.fromEntries(
+      GEOMETRY_TYPES.map((t) => [t, 0]),
+    ) as Record<GeometryType, number>;
 
-  for (const feature of allFeatures) {
-    if (feature.geometry) {
-      countGeometry(feature.geometry, geometryCounts, bbox);
+    const bbox: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
+    const statsMap = new Map<string, PropertyStat>();
+
+    for (const feature of allFeatures) {
+      if (feature.geometry) {
+        countGeometry(feature.geometry, geometryCounts, bbox);
+      }
+      collectProperties(feature.properties, statsMap, allFeatures.length);
     }
-    collectProperties(feature.properties, statsMap, allFeatures.length);
-  }
 
-  // total を全件数に更新
-  for (const s of statsMap.values()) {
-    s.total = allFeatures.length;
-  }
+    for (const s of statsMap.values()) {
+      s.total = allFeatures.length;
+    }
 
-  // BBox パディング（面積ゼロ対策）
-  if (bbox[0] === bbox[2]) {
-    bbox[0] -= 0.001;
-    bbox[2] += 0.001;
-  }
-  if (bbox[1] === bbox[3]) {
-    bbox[1] -= 0.001;
-    bbox[3] += 0.001;
-  }
+    if (bbox[0] === bbox[2]) {
+      bbox[0] -= 0.001;
+      bbox[2] += 0.001;
+    }
+    if (bbox[1] === bbox[3]) {
+      bbox[1] -= 0.001;
+      bbox[3] += 0.001;
+    }
 
-  const drawFeatures =
-    allFeatures.length > DRAW_THRESHOLD
-      ? sampleFeatures(allFeatures)
-      : allFeatures;
+    const drawFeatures =
+      allFeatures.length > DRAW_THRESHOLD
+        ? sampleFeatures(allFeatures)
+        : allFeatures;
 
-  return {
-    filePath,
-    fileSizeBytes: fileInfo.size,
-    featureCount: allFeatures.length,
-    geometryCounts,
-    propertyStats: [...statsMap.values()],
-    bbox,
-    features: drawFeatures,
-  };
-}
+    return {
+      filePath,
+      fileSizeBytes: fileInfo.size,
+      featureCount: allFeatures.length,
+      geometryCounts,
+      propertyStats: [...statsMap.values()],
+      bbox,
+      features: drawFeatures,
+    };
+  },
+};
