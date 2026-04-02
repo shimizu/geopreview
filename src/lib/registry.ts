@@ -13,9 +13,10 @@ import { extname } from "node:path";
 import type { FileParser } from "./types.js";
 import { geojsonParser } from "../parsers/geojson.js";
 import { flatgeobufParser } from "../parsers/flatgeobuf.js";
+import { geoparquetParser } from "../parsers/geoparquet.js";
 
 /** 登録済みパーサー一覧。先頭から順に拡張子マッチを試みる */
-const parsers: FileParser[] = [geojsonParser, flatgeobufParser];
+const parsers: FileParser[] = [geojsonParser, flatgeobufParser, geoparquetParser];
 
 /**
  * ファイルパスの拡張子から対応するパーサーを返す。
