@@ -35,7 +35,7 @@ Requires Node.js v18+.
 ## Usage
 
 ```bash
-gp <file>
+geopreview <file>
 ```
 
 ### Options
@@ -50,10 +50,10 @@ gp <file>
 ### Examples
 
 ```bash
-gp world.geojson
-gp countries.fgb --no-map
-gp buildings.parquet --props 30
-gp routes.geojson -w 100 -h 30
+geopreview world.geojson
+geopreview countries.fgb --no-map
+geopreview buildings.parquet --props 30
+geopreview routes.geojson -w 100 -h 30
 ```
 
 ### Keyboard

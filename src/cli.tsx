@@ -20,7 +20,7 @@ import { getParser } from "./lib/registry.js";
 const cli = meow(
   `
   Usage
-    $ gp <file>
+    $ geopreview <file>
 
   Options
     --no-map          Hide map preview
@@ -29,8 +29,8 @@ const cli = meow(
     --props, -p       Property display limit  Default: 15
 
   Examples
-    $ gp world.geojson
-    $ gp ports.geojson --no-map --props 30
+    $ geopreview world.geojson
+    $ geopreview ports.geojson --no-map --props 30
 `,
   {
     importMeta: import.meta,

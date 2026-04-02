@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-geopreview (`gp`) — 地理空間ファイルの統計サマリーとブライユ文字によるターミナルマッププレビューを表示する CLI ツール。
+geopreview (`geopreview`) — 地理空間ファイルの統計サマリーとブライユ文字によるターミナルマッププレビューを表示する CLI ツール。
 GeoJSON (.geojson/.json), FlatGeobuf (.fgb), GeoParquet (.parquet) に対応。
 
 ## 技術スタック
