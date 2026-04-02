@@ -4,34 +4,38 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## プロジェクト概要
 
-GeoJSON ファイルの統計サマリーとブライユ文字によるターミナルマッププレビューを表示する CLI ツール。
-仕様は `plan.md` に記載。
+geopreview (`gp`) — 地理空間ファイルの統計サマリーとブライユ文字によるターミナルマッププレビューを表示する CLI ツール。
+GeoJSON (.geojson/.json), FlatGeobuf (.fgb), GeoParquet (.parquet) に対応。
 
 ## 技術スタック
 
 - TypeScript + React Ink v5（ターミナル UI）
 - drawille-canvas（ブライユ文字描画）
 - meow（CLI 引数パース）
+- flatgeobuf / hyparquet（バイナリ形式パーサー）
 - Node.js v18+
 
-## ビルド・実行
+## ビルド・実行・テスト
 
 ```bash
 npm install
 npm run build          # TypeScript コンパイル
-npm start -- <file>    # 実行
-npx tsx src/cli.ts <file>  # 開発時の直接実行
+npm test               # vitest でテスト実行
+npx tsx src/cli.tsx <file>  # 開発時の直接実行
 ```
 
 ## アーキテクチャ
 
-データフロー: GeoJSON ファイル → `parseGeojson.ts`（解析） → `ParseResult` → 各UIコンポーネント + `drawMap.ts`（描画）
+データフロー: ファイル → レジストリで拡張子からパーサー選択 → `ParseResult` → 各UIコンポーネント + `drawMap.ts`
 
-- `src/cli.ts` — エントリポイント。meow でフラグ解析後 Ink の render を呼ぶ
-- `src/App.tsx` — ルートコンポーネント。useGeojson フックで非同期読み込みし、子コンポーネントへ分配
-- `src/lib/parseGeojson.ts` — GeoJSON 解析の中核。1パスで全統計を収集。10,000件超は描画用に間引き
-- `src/lib/drawMap.ts` — 座標を drawille ピクセルに変換して描画。アスペクト比補正あり（縦方向 ×0.5）
-- `src/hooks/useGeojson.ts` — ファイル読み込み＋解析の非同期フック
+- `src/cli.tsx` — エントリポイント。meow でフラグ解析、レジストリからパーサー取得後 Ink render
+- `src/App.tsx` — ルートコンポーネント。useFileParser フックで非同期読み込み
+- `src/lib/registry.ts` — 拡張子ベースのパーサーレジストリ
+- `src/lib/parseUtils.ts` — 統計収集の共通ユーティリティ（buildParseResult 等）
+- `src/lib/drawMap.ts` — 座標を drawille ピクセルに変換して描画
+- `src/parsers/` — 各ファイル形式の FileParser 実装（geojson, flatgeobuf, geoparquet）
+
+新しいファイル形式を追加するには: `src/parsers/` に FileParser を実装し `registry.ts` に登録する。
 
 ## コミットプレフィックス
 

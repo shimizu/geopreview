@@ -1,10 +1,10 @@
 {
-  "name": "geojson-inspect",
+  "name": "geopreview",
   "version": "1.0.0",
   "description": "",
   "main": "dist/cli.js",
   "bin": {
-    "gi": "dist/cli.js"
+    "gp": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
@@ -13,8 +13,10 @@
   },
   "keywords": [
     "geojson",
+    "flatgeobuf",
+    "geoparquet",
     "cli",
-    "inspect"
+    "preview"
   ],
   "author": "",
   "license": "ISC",
