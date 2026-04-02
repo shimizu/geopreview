@@ -2,19 +2,7 @@
 
 Geospatial file inspector for the terminal. Displays statistics summary and a Braille-character map preview.
 
-```
-world.geojson
-FeatureCollection / 240 features / 9.4 MB
-
-GEOMETRY SUMMARY               PROPERTY SCHEMA
-MultiPolygon             240   fid             number        ▓▓▓▓▓▓▓▓▓▓ (240/240)
-                               iso_a2          string        ▓▓▓▓▓▓▓▓▓▓ (240/240)
-                               NAME            string        ▓▓▓▓▓▓▓▓▓▓ (238/240)
-
-MAP PREVIEW
-⣀⡀ ⢀⣀⣀⣀⣀⡀ ⣀⣰⣻⣿⣿⡿⣿⣿⣿⣿⣿⣿⣤⣉⠉⠙⣦⡀   ⢠⣴⡿⠃ ⡀    ⢙⣊⣁⣀
-⠿⣶⣮⣿⡆   ⡏⠉⠉⠉⠉⠙⠛⠛⠛⠛⣫⣿⣿⣹⣿⣹⣷⠂⠹⣷⢀⣴⠶⠛⠩⣧⣶⠄
-```
+![geopreview screenshot](https://raw.githubusercontent.com/shimizu/geopreview/main/docs/images/screenshot.png)
 
 ## Supported Formats
 
