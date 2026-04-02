@@ -2,7 +2,7 @@
 
 Geospatial file inspector for the terminal. Displays statistics summary and a Braille-character map preview.
 
-![geopreview screenshot](https://raw.githubusercontent.com/shimizu/geopreview/main/docs/images/screenshot.png)
+![geopreview screenshot](https://raw.githubusercontent.com/shimizu/geopreview/refs/heads/main/docs/images/screenshot.png)
 
 ## Supported Formats
 
