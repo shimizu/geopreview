@@ -1,3 +1,17 @@
+/**
+ * GeoJSON パーサー — .geojson / .json ファイルを解析して ParseResult に変換する。
+ *
+ * 対応する GeoJSON の形式:
+ * - FeatureCollection（最も一般的）
+ * - 単独の Feature
+ * - 素のジオメトリオブジェクト（Feature でラップして処理）
+ *
+ * 処理の流れ:
+ * 1. ファイルを丸ごと読み込んで JSON.parse
+ * 2. Feature 配列を1パスで走査し、ジオメトリ種別カウント・プロパティ統計・BBox を収集
+ * 3. Feature 数が DRAW_THRESHOLD を超える場合、描画用に等間隔サンプリング
+ */
+
 import { readFile, stat } from "node:fs/promises";
 import type { Feature, FeatureCollection, GeoJSON, Geometry, Position } from "geojson";
 import type { FileParser, GeometryType, ParseResult, PropertyStat, PropertyType } from "../lib/types.js";
@@ -12,9 +26,15 @@ const GEOMETRY_TYPES: GeometryType[] = [
   "GeometryCollection",
 ];
 
+/** 描画用に保持する Feature の最大件数 */
 const MAX_DRAW_FEATURES = 5000;
+/** この件数を超えると描画用 Feature をサンプリングで間引く */
 const DRAW_THRESHOLD = 10000;
 
+/**
+ * JavaScript の値から PropertyType を推定する。
+ * parseFloat/isNaN は使わず typeof で判定する（仕様準拠）。
+ */
 function detectPropertyType(value: unknown): PropertyType {
   if (value === null || value === undefined) return "null";
   if (Array.isArray(value)) return "array";
@@ -24,6 +44,10 @@ function detectPropertyType(value: unknown): PropertyType {
   return "string";
 }
 
+/**
+ * ジオメトリを再帰的に走査し、種別カウントと BBox を更新する。
+ * GeometryCollection は含まれるジオメトリに対して再帰呼び出しを行う。
+ */
 function countGeometry(
   geometry: Geometry,
   counts: Record<GeometryType, number>,
@@ -43,6 +67,7 @@ function countGeometry(
       break;
     case "MultiLineString":
     case "Polygon":
+      // MultiLineString と Polygon は同じ座標構造（Position[][]）
       for (const ring of geometry.coordinates) {
         for (const coord of ring) {
           updateBboxFromCoord(coord, bbox);
@@ -66,6 +91,7 @@ function countGeometry(
   }
 }
 
+/** 単一座標で BBox（包含矩形）の min/max を更新する */
 function updateBboxFromCoord(
   coord: Position,
   bbox: [number, number, number, number],
@@ -77,6 +103,10 @@ function updateBboxFromCoord(
   if (lat > bbox[3]) bbox[3] = lat;
 }
 
+/**
+ * Feature の properties から各キーの型と出現回数を集計する。
+ * 同一キーに string と number が混在するケース等も Set<PropertyType> で追跡する。
+ */
 function collectProperties(
   properties: Record<string, unknown> | null,
   statsMap: Map<string, PropertyStat>,
@@ -96,6 +126,10 @@ function collectProperties(
   }
 }
 
+/**
+ * GeoJSON のルート type に応じて Feature 配列を取り出す。
+ * 素のジオメトリの場合は空の properties で Feature にラップする。
+ */
 function toFeatures(geojson: GeoJSON): Feature[] {
   switch (geojson.type) {
     case "FeatureCollection":
@@ -107,6 +141,10 @@ function toFeatures(geojson: GeoJSON): Feature[] {
   }
 }
 
+/**
+ * 描画用に Feature を等間隔サンプリングする。
+ * 統計は全件で行うが、描画は MAX_DRAW_FEATURES 件に抑えてパフォーマンスを確保する。
+ */
 function sampleFeatures(features: Feature[]): Feature[] {
   if (features.length <= MAX_DRAW_FEATURES) return features;
   const step = features.length / MAX_DRAW_FEATURES;
@@ -133,6 +171,7 @@ export const geojsonParser: FileParser = {
       GEOMETRY_TYPES.map((t) => [t, 0]),
     ) as Record<GeometryType, number>;
 
+    // BBox の初期値は Infinity/-Infinity。座標が見つかるたびに min/max を更新する
     const bbox: [number, number, number, number] = [Infinity, Infinity, -Infinity, -Infinity];
     const statsMap = new Map<string, PropertyStat>();
 
@@ -143,10 +182,12 @@ export const geojsonParser: FileParser = {
       collectProperties(feature.properties, statsMap, allFeatures.length);
     }
 
+    // collectProperties で途中参加したキーは total が不正確なので全件数で上書き
     for (const s of statsMap.values()) {
       s.total = allFeatures.length;
     }
 
+    // BBox が点または線（面積ゼロ）の場合、描画時のゼロ除算を防ぐためパディングを追加
     if (bbox[0] === bbox[2]) {
       bbox[0] -= 0.001;
       bbox[2] += 0.001;

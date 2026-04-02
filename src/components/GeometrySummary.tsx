@@ -1,3 +1,8 @@
+/**
+ * ジオメトリサマリー — ジオメトリ種別ごとの件数を表形式で表示する。
+ * カウントが 0 の種別は非表示にして、実際に含まれる種別のみ列挙する。
+ */
+
 import { Box, Text } from "ink";
 import type { FC } from "react";
 import type { GeometryType } from "../lib/types.js";

@@ -1,3 +1,16 @@
+/**
+ * ルートコンポーネント — 全UIコンポーネントを組み立てる。
+ *
+ * データフロー:
+ *   cli.tsx → App（filePath, parser, options）
+ *     → useFileParser で非同期解析
+ *     → ParseResult を各子コンポーネントに分配
+ *
+ * useInput で "q" キーによる終了を実装。
+ * ただしパイプ入力等で stdin が TTY でない場合は useInput を無効化する
+ * （Ink の Raw mode エラーを回避するため）。
+ */
+
 import { Box, Text, useApp, useInput } from "ink";
 import { Spinner } from "@inkjs/ui";
 import type { FC } from "react";

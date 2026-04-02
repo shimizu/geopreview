@@ -1,4 +1,16 @@
 #!/usr/bin/env node
+/**
+ * CLI エントリポイント。
+ *
+ * meow でコマンドライン引数を解析し、ファイル拡張子に応じたパーサーを
+ * レジストリから取得して、Ink の App コンポーネントに渡す。
+ *
+ * 使用例:
+ *   gi world.geojson
+ *   gi ports.geojson --no-map --props 30
+ *   gi routes.geojson -w 100 -h 30
+ */
+
 import meow from "meow";
 import { render } from "ink";
 import React from "react";
@@ -53,6 +65,7 @@ if (!filePath) {
   process.exit(1);
 }
 
+// 拡張子からパーサーを解決。未対応の形式の場合はエラーメッセージを表示して終了
 let parser;
 try {
   parser = getParser(filePath);

@@ -1,7 +1,12 @@
+/**
+ * ヘッダー — ファイル名・Feature 数・ファイルサイズを表示する。
+ */
+
 import { Box, Text } from "ink";
 import type { FC } from "react";
 import type { ParseResult } from "../lib/types.js";
 
+/** バイト数を B / KB / MB の読みやすい単位に変換する */
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;

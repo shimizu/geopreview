@@ -1,3 +1,11 @@
+/**
+ * プロパティスキーマ — 各プロパティの名前・型・充足率を表示する。
+ *
+ * 充足率（count / total）を ▓░ のバーで視覚化する（10段階）。
+ * --props オプションで表示件数を制限でき、超過分は "... and N more" と表示する。
+ * 型が複数混在する場合は "string|number" のようにパイプ区切りで表示する。
+ */
+
 import { Box, Text } from "ink";
 import type { FC } from "react";
 import type { PropertyStat } from "../lib/types.js";
@@ -7,6 +15,7 @@ interface Props {
   limit: number;
 }
 
+/** 充足率を ▓（充足）/ ░（未充足）のバー文字列に変換 */
 function makeBar(ratio: number, width: number = 10): string {
   const filled = Math.round(ratio * width);
   return "▓".repeat(filled) + "░".repeat(width - filled);

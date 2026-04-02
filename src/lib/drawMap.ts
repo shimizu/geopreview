@@ -1,8 +1,23 @@
+/**
+ * drawille-canvas を使ってジオメトリをブライユ文字（Unicode Braille）で描画する。
+ *
+ * ブライユ文字は 1 文字あたり 2×4 のドットマトリクスを持つため、
+ * ターミナルの 1 文字が 2px（横）× 4px（縦）の解像度になる。
+ *
+ * 座標変換:
+ *   経度(lng) → px = (lng - minLng) / lngRange * (幅px - 1)
+ *   緯度(lat) → py = (1 - (lat - minLat) / latRange) * (高さpx - 1)
+ *                     ↑ Y軸反転（ターミナルは上から下、緯度は南から北）
+ *
+ * 描画方針: ストロークのみ（塗りつぶしなし）で輪郭を描く。
+ */
+
 // @ts-expect-error drawille-canvas has no type declarations
 import DrawilleCanvas from "drawille-canvas";
-import type { Feature, Geometry, Position } from "geojson";
+import type { Geometry, Position } from "geojson";
 import type { ParseResult } from "./types.js";
 
+/** drawille-canvas の Context が提供する描画メソッドの型定義 */
 interface DrawContext {
   beginPath(): void;
   moveTo(x: number, y: number): void;
@@ -10,14 +25,22 @@ interface DrawContext {
   closePath(): void;
   stroke(): void;
   fillRect(x: number, y: number, w: number, h: number): void;
+  /** ブライユ文字列を返す */
   toString(): string;
 }
 
+/**
+ * ParseResult の features を drawille キャンバスに描画し、ブライユ文字列を返す。
+ *
+ * @param widthChars  - マップの幅（ターミナル文字数）
+ * @param heightChars - マップの高さ（ターミナル文字数）
+ */
 export function drawMap(
   result: ParseResult,
   widthChars: number,
   heightChars: number,
 ): string {
+  // ブライユ1文字 = 横2ドット × 縦4ドット
   const pxW = widthChars * 2;
   const pxH = heightChars * 4;
 
@@ -27,20 +50,24 @@ export function drawMap(
   const lngRange = maxLng - minLng;
   const latRange = maxLat - minLat;
 
+  /** 経度をピクセルX座標に変換 */
   function projectLng(lng: number): number {
     return ((lng - minLng) / lngRange) * (pxW - 1);
   }
 
+  /** 緯度をピクセルY座標に変換（Y軸反転） */
   function projectLat(lat: number): number {
     return (1 - (lat - minLat) / latRange) * (pxH - 1);
   }
 
+  /** Point 用: 1ピクセルの点を打つ */
   function drawCoord(coord: Position): void {
     const px = Math.round(projectLng(coord[0]));
     const py = Math.round(projectLat(coord[1]));
     ctx.fillRect(px, py, 1, 1);
   }
 
+  /** LineString 用: 頂点間を線分で結ぶ */
   function drawLineString(coords: Position[]): void {
     if (coords.length === 0) return;
     ctx.beginPath();
@@ -55,6 +82,7 @@ export function drawMap(
     ctx.stroke();
   }
 
+  /** Polygon 用: 各リング（外周・穴）の輪郭を描画（塗りつぶしなし） */
   function drawPolygon(rings: Position[][]): void {
     for (const ring of rings) {
       if (ring.length === 0) continue;
@@ -72,6 +100,7 @@ export function drawMap(
     }
   }
 
+  /** ジオメトリ種別に応じて描画関数を振り分ける（GeometryCollection は再帰） */
   function drawGeometry(geometry: Geometry): void {
     switch (geometry.type) {
       case "Point":
