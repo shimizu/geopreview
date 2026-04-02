@@ -4,14 +4,18 @@
   "description": "",
   "main": "dist/cli.js",
   "bin": {
-    "geojson-inspect": "dist/cli.js"
+    "gi": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc",
     "start": "tsx src/cli.tsx",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["geojson", "cli", "inspect"],
+  "keywords": [
+    "geojson",
+    "cli",
+    "inspect"
+  ],
   "author": "",
   "license": "ISC",
   "type": "module",
@@ -24,6 +28,7 @@
     "react": "^19.2.4"
   },
   "devDependencies": {
+    "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
